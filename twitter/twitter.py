@@ -9,12 +9,12 @@ CONSUMER_SECRET = "JOB36LqZhd8A6WJ4zmd7ZBy3As2CQhK9uLXonlpaliFJYMhcSv"
 AUTH_TOKEN = "43233942-pMGIuekO53ZywjjOe3JVZJoekOLWN5KzIfj1NcvKP"
 AUTH_SECRET = "ibXRDGgO4g9WA8buMFvzfyJebA6JkhCN26WMUeGeA"
 
+# TODO: Move configurations to .env file.
 
 class MyStreamer(TwythonStreamer):
     def on_success(self, data):
         try:
             if data["in_reply_to_screen_name"] == "realDonaldTrump":
-                print(data["in_reply_to_screen_name"], data["user"]["screen_name"])
                 tweets = TweetStream(
                     username=data["user"]["screen_name"],
                     realname=data["user"]["name"],
