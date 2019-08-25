@@ -1,5 +1,7 @@
+#!/home/rorix/.local/share/virtualenvs/ELK_Twitter-dCFD5hR6/bin/python
+
 from twython import TwythonStreamer
-from models import Tweet, es
+from models import TweetStream, es
 from datetime import datetime
 
 CONSUMER_KEY = "V1XCyXScnXDZh232FAIvjSd2e"
@@ -11,17 +13,24 @@ AUTH_SECRET = "ibXRDGgO4g9WA8buMFvzfyJebA6JkhCN26WMUeGeA"
 class MyStreamer(TwythonStreamer):
     def on_success(self, data):
         try:
-            tweets = Tweet(
-                username=data["user"]["screen_name"],
-                realname=data["user"]["name"],
-                location=data["user"]["location"],            
-                tweet_text=data["text"],
-                hashtags=data["entities"]["hashtags"],
-            )
-            tweets.push_to_elastic()
+            if data["in_reply_to_screen_name"] == "realDonaldTrump":
+                print(data["in_reply_to_screen_name"], data["user"]["screen_name"])
+                tweets = TweetStream(
+                    username=data["user"]["screen_name"],
+                    realname=data["user"]["name"],
+                    location=data["user"]["location"],
+                    tweet_text=data["text"],
+                    hashtags=data["entities"]["hashtags"],
+                    reply="True"
+                    if data["in_reply_to_screen_name"] == "realDonaldTrump"
+                    else "False",
+                    trump_tweet="True"
+                    if data["user"]["screen_name"] == "realDonaldTrump"
+                    else "False",
+                )
+                tweets.push_to_elastic()
         except KeyError:
-            pass        
-        
+            pass
 
     def on_error(self, status_code, data):
         print(status_code)
@@ -32,10 +41,11 @@ class MyStreamer(TwythonStreamer):
         print("Request timed out, try again later")
         self.disconnect()
 
-def start():
-    stream = MyStreamer(CONSUMER_KEY, CONSUMER_SECRET, AUTH_TOKEN, AUTH_SECRET)
-    stream.statuses.filter(track=["Trump", "trump"])
+
+def main():
+    tweets_stream = MyStreamer(CONSUMER_KEY, CONSUMER_SECRET, AUTH_TOKEN, AUTH_SECRET)
+    tweets_stream.statuses.filter(follow=["25073877"])
 
 
 if __name__ == "__main__":
-    start()
+    main()
